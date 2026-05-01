@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* IBM Plex Sans Arabic — للنصوص والواجهة والعناوين */
+  --font-naskh: 'IBM Plex Sans Arabic', sans-serif;
+  --font-plex: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  direction: rtl;
+  font-family: var(--font-naskh);
+  font-size: 17px;
+  background-color: #FAFAF8;
+  color: #1A1A1A;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Article body typography ─── */
+.article-body {
+  font-family: var(--font-naskh);
+  font-size: 1.1rem;
+  line-height: 2.1;
+  color: #1A1A1A;
+}
+
+.article-body p {
+  margin-bottom: 1.85rem;
+}
+
+.article-body h2 {
+  font-family: var(--font-naskh);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 3rem 0 1.1rem;
+  color: #165337;
+  line-height: 1.6;
+}
+
+.article-body h3 {
+  font-family: var(--font-naskh);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 2.25rem 0 0.85rem;
+  line-height: 1.6;
+}
+
+/* اقتباس مميّز */
+.article-body blockquote {
+  border-right: 4px solid #C9A84C;
+  padding: 1.1rem 1.6rem;
+  margin: 2.25rem 0;
+  background: #FFF8E7;
+  font-family: var(--font-naskh);
+  font-size: 1.15rem;
+  font-style: normal;
+  color: #3D3D3D;
+  line-height: 1.9;
+}
+
+/* ─── Headline utility ─── */
+.heading-amiri {
+  font-family: var(--font-naskh);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F5F4EF;
+}
+::-webkit-scrollbar-thumb {
+  background: #D0CEC6;
+  border-radius: 3px;
+}
+
+/* Selection */
+::selection {
+  background: #D8F3DC;
+  color: #0D2B1D;
+}
+
+/* Focus */
+*:focus-visible {
+  outline: 2px solid #1B4332;
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.transition-standard {
+  transition: all 0.2s ease;
+}

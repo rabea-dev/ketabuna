@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   keywords: ['مقالات عربية', 'كتب عربية', 'ثقافة', 'أدب', 'قراءة'],
   authors: [{ name: 'كتابنا' }],
   creator: 'كتابنا',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'ar_AR',

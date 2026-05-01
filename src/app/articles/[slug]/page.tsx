@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from '@/data/articles'
 import ArticleContent from '@/components/articles/ArticleContent'
 import RelatedArticles from '@/components/articles/RelatedArticles'
+import AudioPlayer from '@/components/articles/AudioPlayer'
+import CommentsSection from '@/components/articles/CommentsSection'
 import Badge from '@/components/ui/Badge'
 
 interface PageProps {
@@ -112,6 +114,9 @@ export default function ArticlePage({ params }: PageProps) {
               )}
             </div>
 
+            {/* Audio Player */}
+            <AudioPlayer text={article.content} />
+
             {/* Article Content */}
             <ArticleContent article={article} />
 
@@ -126,6 +131,9 @@ export default function ArticlePage({ params }: PageProps) {
                 ))}
               </div>
             )}
+
+            {/* Comments */}
+            <CommentsSection articleSlug={params.slug} />
           </article>
 
           {/* Sidebar */}

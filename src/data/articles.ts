@@ -854,11 +854,12 @@ export function getFeaturedArticle(): Article | undefined {
 }
 
 function sortDabajaFirst(list: Article[]): Article[] {
-  return [...list].sort((a, b) => {
-    if (a.author === 'صلاح دباجة' && b.author !== 'صلاح دباجة') return -1
-    if (b.author === 'صلاح دباجة' && a.author !== 'صلاح دباجة') return 1
-    return 0
-  })
+  const order = (author: string) => {
+    if (author === 'صلاح دباجة') return 0
+    if (author === 'إبراهيم مالك') return 1
+    return 2
+  }
+  return [...list].sort((a, b) => order(a.author) - order(b.author))
 }
 
 export function getPublishedArticles(): Article[] {

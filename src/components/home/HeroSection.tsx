@@ -24,7 +24,7 @@ export default function HeroSection({ article }: HeroSectionProps) {
             </div>
 
             {/* Title */}
-            <h1 className="font-naskh font-bold text-3xl md:text-4xl lg:text-[2.6rem] text-white leading-tight mb-5">
+            <h1 className="font-naskh font-bold text-3xl md:text-4xl lg:text-[2.6rem] text-white leading-loose mb-5">
               {article.title}
             </h1>
 

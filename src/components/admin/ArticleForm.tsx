@@ -15,7 +15,7 @@ interface ArticleFormData {
 
 interface ArticleFormProps {
   initialData?: Partial<ArticleFormData>
-  articleId?: string          // present when editing an existing article
+  articleId?: string
   onSave?: (data: ArticleFormData) => void
 }
 
@@ -35,12 +35,19 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
   })
 
   const [aiLoading, setAiLoading] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [copyright, setCopyright] = useState({
     ownsContent: false,
     ownsImage: false,
     isExternal: false,
     sourcesCited: false,
   })
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 4000)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -59,15 +66,58 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
     }, 1500)
   }
 
-  const handleSubmit = (status: 'draft' | 'published') => {
-    const data = { ...form, status }
-    if (onSave) onSave(data)
-    const action = status === 'draft' ? 'حفظ المسودة' : (isEditing ? 'تحديث المقال' : 'نشر المقال')
-    alert(`✔ تم ${action} بنجاح`)
+  const handleSubmit = async (status: 'draft' | 'published') => {
+    if (!form.title.trim() || !form.author.trim()) {
+      showToast('الرجاء إدخال العنوان واسم الكاتب على الأقل', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, status }),
+      })
+      if (res.ok) {
+        const action = status === 'draft' ? 'حفظ المسودة' : (isEditing ? 'تحديث المقال' : 'نشر المقال')
+        showToast(`✔ تم ${action} بنجاح`, 'success')
+        if (!isEditing) {
+          setForm({ title: '', summary: '', author: '', content: '', sources: '', status: 'draft', category: '', tags: '' })
+          setCopyright({ ownsContent: false, ownsImage: false, isExternal: false, sourcesCited: false })
+        }
+        if (onSave) onSave({ ...form, status })
+      } else {
+        showToast('حدث خطأ أثناء الحفظ، حاول مجدداً', 'error')
+      }
+    } catch {
+      showToast('تعذّر الاتصال بالخادم', 'error')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="space-y-8 max-w-4xl">
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-xl shadow-lg font-naskh text-sm transition-all ${
+          toast.type === 'success'
+            ? 'bg-forest text-white'
+            : 'bg-red-600 text-white'
+        }`}>
+          {toast.type === 'success' ? (
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          )}
+          {toast.message}
+        </div>
+      )}
 
       {/* Edit-mode banner */}
       {isEditing && (
@@ -190,7 +240,6 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
           أدوات الذكاء الاصطناعي
         </h2>
         <p className="text-ink-muted text-sm font-naskh mb-5">استخدم الذكاء الاصطناعي لتحسين مقالك</p>
-
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {[
             { key: 'summary', label: 'إنشاء ملخص', icon: '📝' },
@@ -245,9 +294,10 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
       <div className="flex flex-wrap gap-3">
         <button
           onClick={() => handleSubmit('draft')}
-          className="bg-stone text-ink font-plex font-medium px-6 py-2.5 rounded-lg hover:bg-stone-dark transition-colors"
+          disabled={saving}
+          className="bg-stone text-ink font-plex font-medium px-6 py-2.5 rounded-lg hover:bg-stone-dark transition-colors disabled:opacity-60"
         >
-          حفظ كمسودة
+          {saving ? 'جارٍ الحفظ...' : 'حفظ كمسودة'}
         </button>
         <button
           className="bg-navy/10 text-navy font-plex font-medium px-6 py-2.5 rounded-lg hover:bg-navy/20 transition-colors"
@@ -256,9 +306,10 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
         </button>
         <button
           onClick={() => handleSubmit('published')}
-          className="bg-forest text-white font-plex font-medium px-6 py-2.5 rounded-lg hover:bg-forest-light transition-colors"
+          disabled={saving}
+          className="bg-forest text-white font-plex font-medium px-6 py-2.5 rounded-lg hover:bg-forest-light transition-colors disabled:opacity-60"
         >
-          {isEditing ? 'حفظ التعديلات' : 'نشر المقال'}
+          {saving ? 'جارٍ النشر...' : (isEditing ? 'حفظ التعديلات' : 'نشر المقال')}
         </button>
       </div>
     </div>

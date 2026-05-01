@@ -109,3 +109,58 @@ body {
 .transition-standard {
   transition: all 0.2s ease;
 }
+
+/* ─── Accessibility Modes ─── */
+
+/* Font sizes */
+html.a11y-large  { font-size: 20px; }
+html.a11y-xlarge { font-size: 24px; }
+
+/* High contrast */
+html.a11y-contrast body                          { background-color: #000 !important; color: #fff !important; }
+html.a11y-contrast .bg-cream,
+html.a11y-contrast .bg-cream-dark,
+html.a11y-contrast .bg-white                    { background-color: #111 !important; }
+html.a11y-contrast .text-ink,
+html.a11y-contrast .text-ink-light              { color: #fff !important; }
+html.a11y-contrast .text-ink-muted,
+html.a11y-contrast .text-ink-faint              { color: #ccc !important; }
+html.a11y-contrast .text-white\/75,
+html.a11y-contrast .text-white\/50             { color: #eee !important; }
+html.a11y-contrast .border-stone,
+html.a11y-contrast .border-stone-dark           { border-color: #555 !important; }
+html.a11y-contrast .bg-stone,
+html.a11y-contrast .bg-stone-light              { background-color: #222 !important; }
+html.a11y-contrast a                            { color: #7dd3a8 !important; }
+html.a11y-contrast .bg-forest                  { background-color: #0a4a2a !important; }
+
+/* Reduce motion — disables ALL animations and transitions */
+html.a11y-no-motion *,
+html.a11y-no-motion *::before,
+html.a11y-no-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Dyslexia-friendly font */
+html.a11y-dyslexia,
+html.a11y-dyslexia * {
+  font-family: 'Verdana', 'Tahoma', 'Arial', sans-serif !important;
+  letter-spacing: 0.06em !important;
+  word-spacing: 0.12em !important;
+  line-height: 2.2 !important;
+}
+
+/* News ticker animation */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+.ticker-track {
+  animation: ticker 80s linear infinite;
+}
+.ticker-track.paused {
+  animation-play-state: paused;
+}

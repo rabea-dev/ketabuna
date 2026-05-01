@@ -2,6 +2,7 @@ import HeroSection from '@/components/home/HeroSection'
 import LatestArticles from '@/components/home/LatestArticles'
 import FeaturedBooks from '@/components/home/FeaturedBooks'
 import MostRead from '@/components/home/MostRead'
+import NewsBanner from '@/components/home/NewsBanner'
 import { getFeaturedArticle, getPublishedArticles } from '@/data/articles'
 import { getFeaturedBooks } from '@/data/books'
 
@@ -16,6 +17,9 @@ export default function HomePage() {
     <>
       {/* Hero */}
       {featuredArticle && <HeroSection article={featuredArticle} />}
+
+      {/* News Ticker Banner */}
+      <NewsBanner />
 
       <div className="max-w-content mx-auto px-4 py-10">
         {/* Main content + sidebar */}

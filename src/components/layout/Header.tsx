@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/', label: 'الرئيسية' },
   { href: '/articles', label: 'المقالات' },
   { href: '/writers', label: 'الكتّاب' },
+  { href: '/depopulated-villages', label: 'قرى مهجّرة' },
   { href: '/books', label: 'الكتب' },
   { href: '/about', label: 'من نحن' },
   { href: '/contact', label: 'تواصل معنا' },

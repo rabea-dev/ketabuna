@@ -44,6 +44,7 @@ export default function Footer() {
                 { href: '/', label: 'الرئيسية' },
                 { href: '/articles', label: 'المقالات' },
                 { href: '/writers', label: 'الكتّاب' },
+                { href: '/depopulated-villages', label: 'قرى مهجّرة' },
                 { href: '/books', label: 'الكتب' },
                 { href: '/search', label: 'البحث' },
                 { href: '/about', label: 'من نحن' },

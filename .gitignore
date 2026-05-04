@@ -29,3 +29,12 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# SQLite
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Uploaded article images
+public/images/articles/*
+!public/images/articles/.gitkeep

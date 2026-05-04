@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: 'البحث',
 }
 
+export const dynamic = 'force-dynamic'
+
 interface SearchPageProps {
   searchParams: { q?: string }
 }

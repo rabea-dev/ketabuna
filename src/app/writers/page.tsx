@@ -1,11 +1,13 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { articles } from '@/data/articles'
+import { listArticles } from '@/lib/articleRepo'
 
 export const metadata: Metadata = {
   title: 'الكتّاب',
   description: 'تعرّف على كتّاب كتابنا — أقلام عربية مميزة في الثقافة والأدب والفكر والشأن الإنساني',
 }
+
+export const dynamic = 'force-dynamic'
 
 interface AuthorInfo {
   name: string
@@ -74,6 +76,7 @@ function getAuthorColor(name: string): string {
 export default function WritersPage() {
   // Build author list from articles
   const authorMap = new Map<string, AuthorInfo>()
+  const articles = listArticles()
 
   for (const article of articles) {
     if (article.status !== 'published') continue

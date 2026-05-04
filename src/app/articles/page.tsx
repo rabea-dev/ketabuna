@@ -1,13 +1,13 @@
 import { Metadata } from 'next'
-import ArticleCard from '@/components/articles/ArticleCard'
 import { getPublishedArticles } from '@/data/articles'
+import ArticlesListWithFilter from '@/components/articles/ArticlesListWithFilter'
 
 export const metadata: Metadata = {
   title: 'المقالات',
   description: 'اكتشف أحدث المقالات الثقافية والأدبية والفكرية على كتابنا',
 }
 
-const allCategories = ['الكل', 'ثقافة وأدب', 'تراث وتاريخ', 'شعر وأدب', 'لغة وترجمة', 'مجتمع وثقافة', 'شخصيات أدبية']
+export const dynamic = 'force-dynamic'
 
 export default function ArticlesPage() {
   const articles = getPublishedArticles()
@@ -23,33 +23,12 @@ export default function ArticlesPage() {
         </p>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-8 pb-6 border-b border-stone">
-        {allCategories.map(cat => (
-          <button
-            key={cat}
-            className={`px-4 py-1.5 rounded-full text-sm font-naskh transition-colors ${
-              cat === 'الكل'
-                ? 'bg-forest text-white'
-                : 'bg-stone text-ink-muted hover:bg-forest/10 hover:text-forest'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Articles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {articles.map(article => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
-      </div>
-
-      {articles.length === 0 && (
+      {articles.length === 0 ? (
         <div className="text-center py-20">
           <p className="text-ink-muted font-naskh text-xl">لا توجد مقالات منشورة حالياً</p>
         </div>
+      ) : (
+        <ArticlesListWithFilter articles={articles} />
       )}
     </div>
   )

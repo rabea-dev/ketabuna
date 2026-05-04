@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 interface ArticleFormData {
   title: string
@@ -11,6 +11,7 @@ interface ArticleFormData {
   status: 'draft' | 'published'
   category: string
   tags: string
+  image: string
 }
 
 interface ArticleFormProps {
@@ -32,10 +33,13 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
     status: initialData?.status || 'draft',
     category: initialData?.category || '',
     tags: initialData?.tags || '',
+    image: initialData?.image || '',
   })
 
   const [aiLoading, setAiLoading] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [copyright, setCopyright] = useState({
     ownsContent: false,
@@ -66,6 +70,33 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
     }, 1500)
   }
 
+  const handleFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.url) {
+        setForm(prev => ({ ...prev, image: data.url }))
+        showToast('✔ تم رفع الصورة', 'success')
+      } else {
+        showToast(data.error || 'فشل رفع الصورة', 'error')
+      }
+    } catch {
+      showToast('تعذّر الاتصال بالخادم لرفع الصورة', 'error')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const removeImage = () => {
+    setForm(prev => ({ ...prev, image: '' }))
+  }
+
   const handleSubmit = async (status: 'draft' | 'published') => {
     if (!form.title.trim() || !form.author.trim()) {
       showToast('الرجاء إدخال العنوان واسم الكاتب على الأقل', 'error')
@@ -73,8 +104,10 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
     }
     setSaving(true)
     try {
-      const res = await fetch('/api/articles', {
-        method: 'POST',
+      const url = isEditing ? `/api/articles/${articleId}` : '/api/articles'
+      const method = isEditing ? 'PUT' : 'POST'
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, status }),
       })
@@ -82,7 +115,7 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
         const action = status === 'draft' ? 'حفظ المسودة' : (isEditing ? 'تحديث المقال' : 'نشر المقال')
         showToast(`✔ تم ${action} بنجاح`, 'success')
         if (!isEditing) {
-          setForm({ title: '', summary: '', author: '', content: '', sources: '', status: 'draft', category: '', tags: '' })
+          setForm({ title: '', summary: '', author: '', content: '', sources: '', status: 'draft', category: '', tags: '', image: '' })
           setCopyright({ ownsContent: false, ownsImage: false, isExternal: false, sourcesCited: false })
         }
         if (onSave) onSave({ ...form, status })
@@ -186,12 +219,68 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
 
         <div>
           <label className="block font-naskh text-sm text-ink-light mb-1.5">الصورة الرئيسية</label>
-          <div className="border-2 border-dashed border-stone rounded-lg p-6 text-center hover:border-forest/40 transition-colors cursor-pointer">
-            <svg className="w-8 h-8 text-ink-faint mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-ink-muted text-sm font-naskh">اسحب الصورة هنا أو انقر للرفع</p>
-            <p className="text-ink-faint text-xs font-naskh mt-1">PNG, JPG حتى 5MB</p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFilePicked}
+            className="hidden"
+          />
+
+          {form.image ? (
+            <div className="space-y-3">
+              <div className="relative rounded-lg overflow-hidden border border-stone bg-stone/20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form.image}
+                  alt="معاينة الصورة"
+                  className="w-full max-h-64 object-cover"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="bg-navy/10 text-navy font-plex font-medium px-4 py-2 rounded-lg hover:bg-navy/20 transition-colors text-sm disabled:opacity-60"
+                >
+                  {uploading ? 'جارٍ الرفع...' : 'استبدال الصورة'}
+                </button>
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="bg-red-50 text-red-600 font-plex font-medium px-4 py-2 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                >
+                  إزالة الصورة
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              className="border-2 border-dashed border-stone rounded-lg p-6 text-center hover:border-forest/40 transition-colors cursor-pointer"
+            >
+              <svg className="w-8 h-8 text-ink-faint mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="text-ink-muted text-sm font-naskh">
+                {uploading ? 'جارٍ الرفع...' : 'انقر لرفع صورة'}
+              </p>
+              <p className="text-ink-faint text-xs font-naskh mt-1">PNG, JPG, WEBP, GIF — حتى 8MB</p>
+            </div>
+          )}
+
+          <div className="mt-3">
+            <label className="block font-naskh text-xs text-ink-faint mb-1">أو ألصق رابط صورة</label>
+            <input
+              name="image"
+              value={form.image}
+              onChange={handleChange}
+              placeholder="https://..."
+              className="w-full border border-stone rounded-lg px-3 py-2 font-naskh text-ink focus:outline-none focus:border-forest text-xs"
+              dir="ltr"
+            />
           </div>
         </div>
 

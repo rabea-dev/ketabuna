@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from '@/data/articles'
+import { getArticleBySlug, getRelatedArticles } from '@/data/articles'
 import ArticleContent from '@/components/articles/ArticleContent'
 import RelatedArticles from '@/components/articles/RelatedArticles'
 import AudioPlayer from '@/components/articles/AudioPlayer'
@@ -13,10 +13,7 @@ interface PageProps {
   params: { slug: string }
 }
 
-export async function generateStaticParams() {
-  const articles = getPublishedArticles()
-  return articles.map(a => ({ slug: a.slug }))
-}
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const article = getArticleBySlug(params.slug)

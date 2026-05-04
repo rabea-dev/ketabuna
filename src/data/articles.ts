@@ -841,33 +841,12 @@ export const articles: Article[] = [
   },
 ]
 
-export function getArticleBySlug(slug: string): Article | undefined {
-  return articles.find(a => a.slug === slug)
-}
-
-export function getArticleById(id: string): Article | undefined {
-  return articles.find(a => a.id === id)
-}
-
-export function getFeaturedArticle(): Article | undefined {
-  return articles.find(a => a.featured && a.status === 'published')
-}
-
-function sortDabajaFirst(list: Article[]): Article[] {
-  const order = (author: string) => {
-    if (author === 'صلاح دباجة') return 0
-    if (author === 'إبراهيم مالك') return 1
-    return 2
-  }
-  return [...list].sort((a, b) => order(a.author) - order(b.author))
-}
-
-export function getPublishedArticles(): Article[] {
-  return sortDabajaFirst(articles.filter(a => a.status === 'published'))
-}
-
-export function getRelatedArticles(article: Article, limit = 3): Article[] {
-  return articles
-    .filter(a => a.id !== article.id && a.status === 'published' && a.category === article.category)
-    .slice(0, limit)
-}
+// Helpers now read from SQLite via the repo. The hardcoded `articles` array
+// above is kept ONLY for the initial DB seed (see src/lib/seedDb.ts).
+export {
+  getPublishedArticles,
+  getArticleBySlug,
+  getArticleById,
+  getRelatedArticles,
+  getFeaturedArticle,
+} from '@/lib/articleRepo'

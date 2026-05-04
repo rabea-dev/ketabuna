@@ -3,6 +3,8 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import { getPublishedArticles } from '@/data/articles'
 import { getPublishedBooks } from '@/data/books'
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminDashboard() {
   const articles = getPublishedArticles()
   const books = getPublishedBooks()

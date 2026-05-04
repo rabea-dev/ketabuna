@@ -6,6 +6,8 @@ import NewsBanner from '@/components/home/NewsBanner'
 import { getFeaturedArticle, getPublishedArticles } from '@/data/articles'
 import { getFeaturedBooks } from '@/data/books'
 
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const featuredArticle = getFeaturedArticle()
   const publishedArticles = getPublishedArticles()

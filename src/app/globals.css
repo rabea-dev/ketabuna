@@ -61,6 +61,27 @@ body {
   line-height: 1.6;
 }
 
+/* صور داخل النص */
+.article-body img,
+.article-body figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 2rem auto;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.article-body figure.article-inline-image {
+  margin: 2.25rem 0;
+}
+.article-body figure.article-inline-image figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6B6B6B;
+  margin-top: 0.5rem;
+  font-family: var(--font-naskh);
+}
+
 /* اقتباس مميّز */
 .article-body blockquote {
   border-right: 4px solid #C9A84C;

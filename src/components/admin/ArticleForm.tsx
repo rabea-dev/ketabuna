@@ -39,7 +39,10 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
   const [aiLoading, setAiLoading] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingInline, setUploadingInline] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const inlineFileRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [copyright, setCopyright] = useState({
     ownsContent: false,
@@ -96,6 +99,54 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
   const removeImage = () => {
     setForm(prev => ({ ...prev, image: '' }))
   }
+
+  // Insert HTML at the textarea cursor position
+  const insertAtCursor = (html: string) => {
+    const ta = contentRef.current
+    if (!ta) {
+      setForm(prev => ({ ...prev, content: prev.content + '\n\n' + html + '\n\n' }))
+      return
+    }
+    const start = ta.selectionStart ?? ta.value.length
+    const end = ta.selectionEnd ?? ta.value.length
+    const before = ta.value.slice(0, start)
+    const after = ta.value.slice(end)
+    const padBefore = before.length === 0 || before.endsWith('\n\n') ? '' : (before.endsWith('\n') ? '\n' : '\n\n')
+    const padAfter = after.startsWith('\n\n') ? '' : (after.startsWith('\n') ? '\n' : '\n\n')
+    const next = before + padBefore + html + padAfter + after
+    setForm(prev => ({ ...prev, content: next }))
+    requestAnimationFrame(() => {
+      const pos = (before + padBefore + html + padAfter).length
+      ta.focus()
+      ta.setSelectionRange(pos, pos)
+    })
+  }
+
+  const handleInlineImagePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingInline(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.url) {
+        insertAtCursor(`<img src="${data.url}" alt="" />`)
+        showToast('✔ تم إدراج الصورة في النص', 'success')
+      } else {
+        showToast(data.error || 'فشل رفع الصورة', 'error')
+      }
+    } catch {
+      showToast('تعذّر الاتصال بالخادم لرفع الصورة', 'error')
+    } finally {
+      setUploadingInline(false)
+      if (inlineFileRef.current) inlineFileRef.current.value = ''
+    }
+  }
+
+  const insertHeading = () => insertAtCursor('<h2>عنوان فرعي</h2>')
+  const insertQuote = () => insertAtCursor('<blockquote>اقتباس...</blockquote>')
 
   const handleSubmit = async (status: 'draft' | 'published') => {
     if (!form.title.trim() || !form.author.trim()) {
@@ -286,14 +337,65 @@ export default function ArticleForm({ initialData, articleId, onSave }: ArticleF
 
         <div>
           <label className="block font-naskh text-sm text-ink-light mb-1.5">نص المقال *</label>
-          <textarea
-            name="content"
-            value={form.content}
-            onChange={handleChange}
-            rows={16}
-            placeholder="اكتب محتوى المقال هنا... يمكن استخدام HTML بسيط مثل <p> و <h2>"
-            className="w-full border border-stone rounded-lg px-4 py-3 font-naskh text-ink focus:outline-none focus:border-forest resize-y text-base leading-loose"
+
+          {/* Hidden inline-image input */}
+          <input
+            ref={inlineFileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleInlineImagePicked}
+            className="hidden"
           />
+
+          <div className="border border-stone rounded-lg overflow-hidden focus-within:border-forest focus-within:ring-1 focus-within:ring-forest">
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-stone/30 border-b border-stone px-3 py-2">
+              <button
+                type="button"
+                onClick={() => !uploadingInline && inlineFileRef.current?.click()}
+                disabled={uploadingInline}
+                className="flex items-center gap-1.5 bg-white border border-stone text-ink hover:border-forest/40 hover:text-forest px-3 py-1.5 rounded-lg text-xs font-naskh transition-colors disabled:opacity-60"
+                title="إدراج صورة في النص"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {uploadingInline ? 'جارٍ الرفع...' : 'إدراج صورة'}
+              </button>
+              <button
+                type="button"
+                onClick={insertHeading}
+                className="bg-white border border-stone text-ink hover:border-forest/40 hover:text-forest px-3 py-1.5 rounded-lg text-xs font-naskh transition-colors"
+                title="إدراج عنوان فرعي"
+              >
+                عنوان فرعي
+              </button>
+              <button
+                type="button"
+                onClick={insertQuote}
+                className="bg-white border border-stone text-ink hover:border-forest/40 hover:text-forest px-3 py-1.5 rounded-lg text-xs font-naskh transition-colors"
+                title="إدراج اقتباس"
+              >
+                اقتباس
+              </button>
+              <span className="text-ink-faint text-xs font-naskh mr-auto hidden md:inline">
+                💡 اكتب النص بشكل عادي — أسطر فارغة تُنشئ فقرات جديدة
+              </span>
+            </div>
+
+            <textarea
+              ref={contentRef}
+              name="content"
+              value={form.content}
+              onChange={handleChange}
+              rows={16}
+              placeholder="اكتب محتوى المقال هنا...
+
+استخدم سطراً فارغاً لإنشاء فقرة جديدة.
+انقر على «إدراج صورة» لإضافة صورة في أي مكان."
+              className="w-full px-4 py-3 font-naskh text-ink focus:outline-none resize-y text-base leading-loose border-0"
+            />
+          </div>
         </div>
 
         <div>

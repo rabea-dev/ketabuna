@@ -99,18 +99,36 @@ function escapeHtml(s: string): string {
 
 function normalizeContent(content: string): string {
   if (!content) return ''
-  // If author already used block HTML, trust it.
-  if (/<\s*(p|h[1-6]|ul|ol|li|blockquote|pre|figure|table|div|br|img)[\s>/]/i.test(content)) {
+
+  // If author already used FULL block HTML (paragraphs, headings, etc.), trust it as-is.
+  // We only check for tags that imply the whole content is structured HTML — img/br alone
+  // don't qualify because users may insert images via the toolbar between plain-text paragraphs.
+  if (/<\s*(p|h[1-6]|ul|ol|blockquote|pre|figure|table|div)[\s>/]/i.test(content)) {
     return content
   }
-  // Otherwise treat as plain text
-  const paragraphs = content
-    .replace(/\r\n/g, '\n')
-    .split(/\n\s*\n+/)             // double newline = paragraph break
-    .map(p => p.trim())
-    .filter(Boolean)
-    .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
-  return paragraphs.join('\n')
+
+  // Mixed mode: plain text possibly with inline <img> tags.
+  // Split content while preserving the <img> tags as separate segments.
+  const parts = content.split(/(<img[^>]*>)/i)
+
+  const out: string[] = []
+  for (const part of parts) {
+    if (/^<img/i.test(part)) {
+      // Wrap image in a figure for clean styling and centering
+      out.push(`<figure class="article-inline-image">${part}</figure>`)
+      continue
+    }
+    // Plain text segment → split into paragraphs
+    const text = part.replace(/\r\n/g, '\n').trim()
+    if (!text) continue
+    const paragraphs = text
+      .split(/\n\s*\n+/)
+      .map(p => p.trim())
+      .filter(Boolean)
+      .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
+    out.push(...paragraphs)
+  }
+  return out.join('\n')
 }
 
 function uniqueSlug(base: string, db = getDb()): string {
